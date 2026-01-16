@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>salahm</title>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #F4F1EA;
+            --text-color: #1A1A1A;
+            --accent-color: #555;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'EB Garamond', serif;
+            line-height: 1.6;
+            transition: opacity 0.4s ease;
+        }
+
+        /* Texture Grain de Papier */
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.05; pointer-events: none; z-index: 9999;
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+        }
+
+        /* VUES */
+        .view { display: none; padding: 40px 20px; max-width: 800px; margin: 0 auto; }
+        .view.active { display: block; }
+
+        /* LANDING */
+        #home-view { height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        #home-view.active { display: flex; }
+        h1.brand { font-size: 3rem; font-weight: 400; letter-spacing: 1rem; text-transform: lowercase; margin: 0; }
+        .enter-btn { margin-top: 40px; text-decoration: none; color: var(--text-color); font-size: 0.9rem; letter-spacing: 0.3rem; text-transform: uppercase; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 5px; cursor: pointer; }
+
+        /* BIBLIOTHÈQUE */
+        .nav-header { text-align: center; margin-bottom: 60px; font-style: italic; font-size: 1.2rem; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
+        .card { cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 20px; transition: opacity 0.3s; }
+        .card:hover { opacity: 0.6; }
+        .card h2 { font-size: 1.8rem; font-weight: 400; margin: 0 0 10px 0; }
+        .card p { font-style: italic; margin: 0; color: var(--accent-color); }
+
+        /* LECTURE */
+        .reading-area { font-size: 1.3rem; text-align: justify; }
+        .reading-area h2 { font-size: 2.5rem; font-weight: 400; text-align: center; margin-bottom: 50px; }
+        .reading-area p { margin-bottom: 1.5em; white-space: pre-wrap; }
+        .reading-area p::first-letter { float: left; font-size: 4rem; line-height: 0.8; margin-right: 0.1em; margin-top: 0.15em; }
+        .back-link { margin-bottom: 40px; display: inline-block; cursor: pointer; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1rem; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+    <div id="home-view" class="view active">
+        <h1 class="brand">salahm</h1>
+        <a class="enter-btn" onclick="showView('library-view')">entrer</a>
+    </div>
+
+    <div id="library-view" class="view">
+        <div class="nav-header" onclick="showView('home-view')">salahm</div>
+        <div id="stories-grid" class="grid"></div>
+    </div>
+
+    <div id="story-view" class="view">
+        <div class="back-link" onclick="showView('library-view')">← retour</div>
+        <div id="story-content" class="reading-area"></div>
+    </div>
+
+    <script>
+        let stories = [];
+
+        async function init() {
+            try {
+                const response = await fetch('data.json');
+                stories = await response.json();
+                renderLibrary();
+            } catch (e) { console.error("Erreur chargement JSON", e); }
+        }
+
+        function renderLibrary() {
+            const grid = document.getElementById('stories-grid');
+            grid.innerHTML = stories.map(s => `
+                <div class="card" onclick="readStory('${s.id}')">
+                    <h2>${s.titre}</h2>
+                    <p>${s.extrait}</p>
+                </div>
+            `).join('');
+        }
+
+        function readStory(id) {
+            const story = stories.find(s => s.id === id);
+            if (!story) return;
+            document.getElementById('story-content').innerHTML = `
+                <h2>${story.titre}</h2>
+                <p>${story.texte}</p>
+            `;
+            showView('story-view');
+            window.scrollTo(0, 0);
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        init();
+    </script>
+</body>
+</html>
